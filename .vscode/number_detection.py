@@ -5,7 +5,11 @@ import numpy as np
 from image_processing import *
 
 def detect_numbers(image, image_show):
-    #ckonverzija u grayscale
+
+    #image[:,:,1] = np.zeros(image[:,:,1].shape)
+    #image[:,:,2] = np.zeros(image[:,:,2].shape)
+
+    #konverzija u grayscale
     grayscale_image = rgb_to_grayscale(image)
 
     #median blur za smanjenje suma
@@ -38,7 +42,7 @@ def detect_numbers(image, image_show):
 
         if area < 500 and h > 10 and hierarchy[0][i][3] == -1:
             #crtanje pravougaoika
-            #cv2.rectangle(image_show,(x,y),(x+w,y+h),(139,0,139),2)
+            cv2.rectangle(image_show,(x,y),(x+w,y+h),(139,0,139),2)
             
             #cuvanje pronadjenog regiona
             number = grayscale_image[y:y+h+1,x:x+w+1]
@@ -47,7 +51,7 @@ def detect_numbers(image, image_show):
             number = scale_to_range(resize_image(number))
 
             numbers_array.append(number)           
-            coordinates_array.append([x,y])
+            coordinates_array.append([x,y,h,w])
 
         i += 1
 
