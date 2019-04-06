@@ -2,35 +2,30 @@ import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 from statistics import mean
+from math import hypot
 
-from image_processing import *
+from image_processing import rgb_to_grayscale
 
-def detect_line(image, image_show):
+def detect_line(image):
 
     #konverzija u grayscale
     grayscale_image = rgb_to_grayscale(image)
 
     #Canny Edge Detection
-    edges_image = cv2.Canny(image,50,150,3)
+    edges_image = cv2.Canny(image, 50, 150, 3)
 
     #detekcija linija pomocu Hoguh transformacije
-    lines = cv2.HoughLinesP(edges_image,1,np.pi/180,50,None,100,5)
+    lines = cv2.HoughLinesP(edges_image, 1, np.pi/180, 50, None, 100, 5)
 
-    x1_list = []; x2_list = []; y1_list = []; y2_list = []
+    #trazenje najduze linije
+    point_a = (lines[0][0][0],lines[0][0][1])
+    point_b = (lines[0][0][2],lines[0][0][3])
+
     for line in lines:
         for x1,y1,x2,y2 in line:
-            #crtanje linije na slici
-            #cv2.line(image_show,(x1,y1),(x2,y2),(139,0,139),2)
-            x1_list.append(x1)
-            x2_list.append(x2)
-            y1_list.append(y1)
-            y2_list.append(y2)
 
-    first = (mean(x1_list), mean(y1_list))
-    second = (mean(x2_list), mean(y2_list))
-
-    #cv2.line(image_show,first,second,(139,0,139),2)
+            if hypot(x2-x1, y2-y1) > hypot(point_b[0]-point_a[0], point_b[1]-point_a[1]):
+                point_a = (x1,y1)
+                point_b = (x2,y2)
     
-    #coefficients = np.polyfit(first, second, 1)
-
-    return first, second
+    return point_a, point_b

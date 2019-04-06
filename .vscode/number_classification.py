@@ -7,36 +7,7 @@ from keras.layers import Dense, Conv2D, Flatten
 from keras.optimizers import SGD
 from keras.datasets import mnist
 
-from sklearn import datasets
-
-from image_processing import scale_to_range, resize_image, grayscale_to_binary
-
-def prepare_images_for_cnn(X_images):
-    
-    numbers = []
-
-    for img in X_images:
-        #isecanje okvira
-        
-        mask = img > 0
-        coords = np.argwhere(mask)
-
-        x0, y0 = coords.min(axis=0)
-        x1, y1 = coords.max(axis=0) + 1
-
-        new_image = img[x0:x1, y0:y1]
-        
-        #promena velicine u 28x28 + skaliranje u [0,1]
-        new_image = scale_to_range(resize_image(new_image))
-
-        numbers.append(new_image)
-        
-    numbers = np.array(numbers, np.float32)
-
-    #za CNN
-    numbers = numbers.reshape(numbers.shape[0],28,28,1)
-
-    return numbers
+from image_processing import scale_to_range, resize_image
 
 def result_vector(num):
     num_array = np.zeros(10)
@@ -54,8 +25,33 @@ def prepare_values_for_cnn(Y_values):
 
     return values
 
-def train_cnn():
+def prepare_images_for_cnn(X_images):
+    
+    numbers = []
 
+    for img in X_images:
+        #isecanje okvira       
+        mask = img > 0
+        coords = np.argwhere(mask)
+
+        x0, y0 = coords.min(axis=0)
+        x1, y1 = coords.max(axis=0) + 1
+
+        new_image = img[x0:x1, y0:y1]
+        
+        #promena velicine u 28x28 + skaliranje u [0,1]
+        new_image = scale_to_range(resize_image(new_image))
+
+        numbers.append(new_image)
+        
+    numbers = np.array(numbers, np.float32)
+
+    #za CNN
+    numbers = numbers.reshape(numbers.shape[0], 28, 28, 1)
+
+    return numbers
+
+def train_cnn():
     #ucitavanje MNIST dataset-a
     (X_train, y_train), (X_test, y_test) = mnist.load_data()
 
@@ -77,14 +73,14 @@ def train_cnn():
     cnn.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
     
     #treniranje CNN
-    cnn.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=10)
+    cnn.fit(X_train, y_train, validation_data=(X_test,y_test), epochs=3)
 
     #cuvanje istrenirane CNN u fajl
     cnn.save('cnn.h5')
 
     return cnn
 
-def classification(number_image, cnn):   
+def classification(number_image, cnn):
     result = cnn.predict(number_image)
 
     #vraca indeks maksimalnog broja u nizu
