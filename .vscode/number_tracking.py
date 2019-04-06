@@ -16,13 +16,22 @@ class DetectedNumber:
         self.coordinates = coordinates
 
 def check_if_number_exists(detected_numbers, new_center_X, new_center_Y):
-    for number in detected_numbers:
-        distance = sqrt((number.centerX-new_center_X)**2 + (number.centerY-new_center_Y)**2)
+    if len(detected_numbers) > 0:
 
-        #ako je broj bio dovoljno blizu - to je isti taj broj
-        if(distance < 5):
-            return number
+        min_number = detected_numbers[0]
+        min_distance = sqrt((min_number.centerX-new_center_X)**2 + (min_number.centerY-new_center_Y)**2)
     
+        for number in detected_numbers:
+            distance = sqrt((number.centerX-new_center_X)**2 + (number.centerY-new_center_Y)**2)
+
+            #ako je broj bio dovoljno blizu - to je isti taj broj
+            if distance < min_distance:
+                min_distance = distance
+                min_number = number
+        
+        if min_distance < 5:
+            return min_number
+
     return None
 
 def distance_from_line(detected_number, first_point, second_point):
