@@ -129,7 +129,7 @@ for video_name in os.listdir(video_directory):
 
             #provera da li je neki od detektovanih brojeva prosao zelenu liniju
             for number in detected_numbers_array:
-                if distance_from_line(number, green_a, green_b) < 10 and number.centerY < max(green_a[1], green_b[1]) and number.centerY > min(green_a[1], green_b[1]):
+                if distance_from_line(number, green_a, green_b) < 10 and number.coordinates[1]+number.coordinates[2] < max(green_a[1], green_b[1]) and number.coordinates[1]+number.coordinates[2] > min(green_a[1], green_b[1]):
                     if check_if_line_crossed(number, green_a, green_b) and check_if_id_exists(green_line_crossed, number.id) == False:
                             #cv2.circle(image_show,(number.centerX,number.centerY), 10, (255,0,0), -1)
                             green_line_crossed.append(number)
