@@ -27,6 +27,7 @@ else:
 
 #ucitavanje videa iz "data/videos"
 for video_name in os.listdir(video_directory):
+    frame_counter = 0
 
     video_path = os.path.join(video_directory, video_name)
     print("Processing video -> " + video_name)
@@ -56,6 +57,8 @@ for video_name in os.listdir(video_directory):
     while(cap.isOpened()):
         ret, frame = cap.read()
         
+        found_in_frame = []
+
         if ret == True:
             
             #konverzija u RGB
@@ -111,37 +114,62 @@ for video_name in os.listdir(video_directory):
                 if found_number == None:
                     value = classification(numbers_array[i].reshape(1,28,28,1), cnn)
                     
-                    dn = DetectedNumber(centerX,centerY,id,value,[x,y,h,w])
+                    dn = DetectedNumber(centerX, centerY, id, value, [x,y,h,w], h*w)
                     detected_numbers_array.append(dn)
+                    found_in_frame.append(dn)
 
                     id += 1               
                 else: #ukoliko je broj vec prethodno pronadjen, update koordinata njegovog centra
-                    found_number.update_coordinates(centerX,centerY,[x,y,h,w])
+                    found_number.update_coordinates(centerX, centerY, [x,y,h,w])
+                    found_in_frame.append(dn)
 
-            
-            #provera da li je neki od detektovanih brojeva prosao plavu liniju
+                    #ako je nestao, a sad je pronadjen
+                    if found_number.not_found_frames != 0:
+                        number.not_found_frames = 0
+
+                    """ if frame_counter % 20 == 0:
+                        area = h*w
+
+                        if area > found_number.area:
+                            value = classification(numbers_array[i].reshape(1,28,28,1), cnn)
+
+                            found_number.value = value
+
+                        found_number.area = area """
+                    
+            #provera da li neki od detektovanih brojeva prolazi plavu liniju
             for number in detected_numbers_array:
-                if distance_from_line(number, blue_a, blue_b) < 10 and number.coordinates[1]+number.coordinates[2] < max(blue_a[1], blue_b[1]) and number.coordinates[1]+number.coordinates[2] > min(blue_a[1], blue_b[1]):
-                    if check_if_line_crossed(number, blue_a, blue_b) and check_if_id_exists(blue_line_crossed, number.id) == False:
-                            cv2.circle(image_show,(number.centerX,number.centerY), 10, (255,0,0), -1)
+                point = (number.coordinates[0]+number.coordinates[3], number.coordinates[1]+number.coordinates[2])
+                                
+                if distance_from_line(point, blue_a, blue_b) < 10 and number.coordinates[1]+number.coordinates[2] < max(blue_a[1], blue_b[1]) and number.coordinates[1]+number.coordinates[2] > min(blue_a[1], blue_b[1]):
+                    if check_if_next_to_line(number, blue_a, blue_b) and check_if_id_exists(blue_line_crossed, number.id) == False:
                             blue_line_crossed.append(number)
-                            print("+ " + str(number.value))
+                            #print("+ " + str(number.value))
 
-            #provera da li je neki od detektovanih brojeva prosao zelenu liniju
+            #provera da li neki od detektovanih brojeva prolazi zelenu liniju
             for number in detected_numbers_array:
-                if distance_from_line(number, green_a, green_b) < 10 and number.coordinates[1]+number.coordinates[2] < max(green_a[1], green_b[1]) and number.coordinates[1]+number.coordinates[2] > min(green_a[1], green_b[1]):
-                    if check_if_line_crossed(number, green_a, green_b) and check_if_id_exists(green_line_crossed, number.id) == False:
-                            #cv2.circle(image_show,(number.centerX,number.centerY), 10, (255,0,0), -1)
+                point = (number.coordinates[0]+number.coordinates[3], number.coordinates[1]+number.coordinates[2])
+                
+                if distance_from_line(point, green_a, green_b) < 10 and number.coordinates[1]+number.coordinates[2] < max(green_a[1], green_b[1]) and number.coordinates[1]+number.coordinates[2] > min(green_a[1], green_b[1]):
+                    if check_if_next_to_line(number, green_a, green_b) and check_if_id_exists(green_line_crossed, number.id) == False:
                             green_line_crossed.append(number)
                             #print("- " + str(number.value))
 
+            #proverava da li je neki od brojeva nestao u ovom frejmu
+            for number in detected_numbers_array:
+                if number not in found_in_frame:
+                    number.not_found_frames += 1
+
+                    #ukoliko ga nema duze vreme u videu - moze da se obrise
+                    if number.not_found_frames > 500:
+                        detected_numbers_array.remove(number)
             
             #prikazivanje videa
             #cv2.imshow(video_name, rgb_to_bgr(image_show))
             #cv2.imshow(video_name + "processed", new_image)
             
             """ out.write(image_show) """
-
+            frame_counter += 1
             if cv2.waitKey(25) & 0xFF == ord('q'): 
                 break
 
@@ -152,8 +180,9 @@ for video_name in os.listdir(video_directory):
     cv2.destroyAllWindows()
 
     suma = calculate_sum(blue_line_crossed, green_line_crossed)
+
     results_file.write(video_name + "\t" + str(suma) + "\r")
-    print("SUM: " + str(suma))
+    print("Result: " + str(suma))
 
     #break #zaustavljanje posle prvog videa
 
