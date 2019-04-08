@@ -83,8 +83,8 @@ for video_name in os.listdir(video_directory):
                 lines_detected = True
 
             #crtanje linija
-            cv2.line(image_show,blue_a,blue_b,(255,255,0),1)
-            cv2.line(image_show,green_a,green_b,(255,255,0),1)
+            #cv2.line(image_show,blue_a,blue_b,(255,255,0),3)
+            #cv2.line(image_show,green_a,green_b,(255,255,0),3)
 
             #detekcija brojeva
             numbers_array, numbers_coordinates = detect_numbers(image)
@@ -101,7 +101,7 @@ for video_name in os.listdir(video_directory):
                 cv2.putText(image_show,str(result),(x+w+2,y-2),cv2.FONT_HERSHEY_PLAIN,2,(139,0,139),1,cv2.LINE_AA)
 
                 #oznacavanje pronadjene konture
-                cv2.rectangle(image_show,(x,y),(x+w,y+h),(139,0,139),1)"""
+                cv2.rectangle(image_show,(x,y),(x+w,y+h),(255,255,0),2)"""
                 
                 #centar konture
                 centerX = int(x + w/2)
