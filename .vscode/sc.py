@@ -12,7 +12,6 @@ from keras.models import load_model
 
 video_directory = 'data/videos/'
 cnn_path = 'cnn.h5'
-ann_path = 'ann.h5'
 
 results_file = open("out.txt","w+")
 results_file.write("RA 16/2015 Marijana Kološnjaji\r")
